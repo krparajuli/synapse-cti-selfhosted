@@ -14,22 +14,3 @@ spec:
       protocol: TCP
   selector:
     app.kubernetes.io/name: aha
----
-# Headless service for StatefulSet DNS
-apiVersion: v1
-kind: Service
-metadata:
-  name: aha-headless
-  labels:
-    app.kubernetes.io/name: aha
-    app.kubernetes.io/component: service-discovery
-spec:
-  type: ClusterIP
-  clusterIP: None
-  ports:
-    - name: cell
-      port: 27492
-      targetPort: cell
-      protocol: TCP
-  selector:
-    app.kubernetes.io/name: aha

@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: optic
     app.kubernetes.io/component: web-ui
 spec:
-  serviceName: optic-headless
+  serviceName: optic
   replicas: 1
   selector:
     matchLabels:

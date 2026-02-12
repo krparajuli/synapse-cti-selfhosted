@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: cortex
     app.kubernetes.io/component: hypergraph
 spec:
-  serviceName: cortex-headless
+  serviceName: cortex
   replicas: 1
   selector:
     matchLabels:

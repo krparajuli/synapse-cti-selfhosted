@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: aha
     app.kubernetes.io/component: service-discovery
 spec:
-  serviceName: aha-headless
+  serviceName: aha
   replicas: 1
   selector:
     matchLabels:

@@ -18,25 +18,3 @@ spec:
       protocol: TCP
   selector:
     app.kubernetes.io/name: optic
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: optic-headless
-  labels:
-    app.kubernetes.io/name: optic
-    app.kubernetes.io/component: web-ui
-spec:
-  type: ClusterIP
-  clusterIP: None
-  ports:
-    - name: https
-      port: 443
-      targetPort: https
-      protocol: TCP
-    - name: cell
-      port: 27492
-      targetPort: cell
-      protocol: TCP
-  selector:
-    app.kubernetes.io/name: optic

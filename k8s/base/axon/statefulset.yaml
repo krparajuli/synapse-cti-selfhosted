@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: axon
     app.kubernetes.io/component: binary-storage
 spec:
-  serviceName: axon-headless
+  serviceName: axon
   replicas: 1
   selector:
     matchLabels:

@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: jsonstor
     app.kubernetes.io/component: json-storage
 spec:
-  serviceName: jsonstor-headless
+  serviceName: jsonstor
   replicas: 1
   selector:
     matchLabels:
