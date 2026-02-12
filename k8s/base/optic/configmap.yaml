@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: optic-config
+  labels:
+    app.kubernetes.io/name: optic
+    app.kubernetes.io/component: web-ui
+data:
+  SYN_OPTIC_HTTPS_PORT: "4443"
+  SYN_OPTIC_LISTENER: "ssl://0.0.0.0:27492"
+  # Connect Optic to Cortex and Axon via AHA service discovery
+  SYN_OPTIC_CORTEX: "aha://cortex..."
+  SYN_OPTIC_AXON: "aha://axon..."
+  # The public-facing hostname users will use to access the UI
+  # Override this in your overlay
+  SYN_OPTIC_NETLOC: "optic.synapse.local"
+  # AHA provisioning URL — generated from AHA after it is running:
+  #   kubectl exec -n synapse aha-0 -- python -m synapse.tools.aha.provision.service 00.optic
+  # Set the output URL in a Secret named 'optic-provision' with key 'SYN_OPTIC_AHA_PROVISION'

@@ -1,0 +1,43 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: synapse
+
+resources:
+  - namespace.yaml
+  # Phase 1: Service discovery (no dependencies)
+  - aha/configmap.yaml
+  - aha/service.yaml
+  - aha/statefulset.yaml
+  # Phase 2: Storage services (depend on AHA)
+  - axon/configmap.yaml
+  - axon/service.yaml
+  - axon/statefulset.yaml
+  - jsonstor/configmap.yaml
+  - jsonstor/service.yaml
+  - jsonstor/statefulset.yaml
+  # Phase 3: Core hypergraph (depends on AHA, Axon, JSONStor)
+  - cortex/configmap.yaml
+  - cortex/service.yaml
+  - cortex/statefulset.yaml
+  # Phase 4: Web UI (depends on AHA, Cortex, Axon)
+  - optic/configmap.yaml
+  - optic/service.yaml
+  - optic/statefulset.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: synapse
+    includeSelectors: true
+
+images:
+  - name: vertexproject/synapse-aha
+    newTag: v2.x.x
+  - name: vertexproject/synapse-axon
+    newTag: v2.x.x
+  - name: vertexproject/synapse-jsonstor
+    newTag: v2.x.x
+  - name: vertexproject/synapse-cortex
+    newTag: v2.x.x
+  - name: vertexproject/optic
+    newTag: v2.x.x

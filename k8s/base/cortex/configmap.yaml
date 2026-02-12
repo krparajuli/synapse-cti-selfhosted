@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cortex-config
+  labels:
+    app.kubernetes.io/name: cortex
+    app.kubernetes.io/component: hypergraph
+data:
+  SYN_CORTEX_HTTPS_PORT: "null"
+  SYN_CORTEX_LISTENER: "ssl://0.0.0.0:27492"
+  # Connect Cortex to Axon and JSONStor via AHA service discovery
+  SYN_CORTEX_AXON: "aha://axon..."
+  SYN_CORTEX_JSONSTOR: "aha://jsonstor..."
+  # AHA provisioning URL — generated from AHA after it is running:
+  #   kubectl exec -n synapse aha-0 -- python -m synapse.tools.aha.provision.service 00.cortex
+  # Set the output URL in a Secret named 'cortex-provision' with key 'SYN_CORTEX_AHA_PROVISION'

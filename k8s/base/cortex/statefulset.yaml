@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cortex
+  labels:
+    app.kubernetes.io/name: cortex
+    app.kubernetes.io/component: hypergraph
+spec:
+  serviceName: cortex-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cortex
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cortex
+        app.kubernetes.io/component: hypergraph
+    spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      # Wait for AHA, Axon, and JSONStor to be ready before starting Cortex
+      initContainers:
+        - name: wait-for-aha
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for AHA to be ready..."
+              until nc -z aha.synapse.svc.cluster.local 27492; do
+                echo "AHA not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "AHA is ready."
+        - name: wait-for-axon
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Axon to be ready..."
+              until nc -z axon.synapse.svc.cluster.local 27492; do
+                echo "Axon not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "Axon is ready."
+        - name: wait-for-jsonstor
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for JSONStor to be ready..."
+              until nc -z jsonstor.synapse.svc.cluster.local 27492; do
+                echo "JSONStor not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "JSONStor is ready."
+      containers:
+        - name: cortex
+          image: vertexproject/synapse-cortex
+          ports:
+            - name: cell
+              containerPort: 27492
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: cortex-config
+            - secretRef:
+                name: cortex-provision
+                optional: true
+          volumeMounts:
+            - name: storage
+              mountPath: /vertex/storage
+          readinessProbe:
+            tcpSocket:
+              port: cell
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: cell
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+  volumeClaimTemplates:
+    - metadata:
+        name: storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 50Gi
