@@ -28,6 +28,9 @@ spec:
             - name: cell
               containerPort: 27492
               protocol: TCP
+            - name: provision
+              containerPort: 27272
+              protocol: TCP
           envFrom:
             - configMapRef:
                 name: aha-config

@@ -12,5 +12,9 @@ spec:
       port: 27492
       targetPort: cell
       protocol: TCP
+    - name: provision
+      port: 27272
+      targetPort: provision
+      protocol: TCP
   selector:
     app.kubernetes.io/name: aha
