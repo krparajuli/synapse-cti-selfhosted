@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/component: web-ui
 data:
   SYN_OPTIC_HTTPS_PORT: "4443"
-  SYN_OPTIC_LISTENER: "ssl://0.0.0.0:27492"
+  SYN_OPTIC_DMON_LISTEN: "ssl://0.0.0.0:27492?hostname=00.optic.synapse&ca=synapse"
   # Connect Optic to Cortex and Axon via AHA service discovery
   SYN_OPTIC_CORTEX: "aha://cortex..."
   SYN_OPTIC_AXON: "aha://axon..."

@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/component: binary-storage
 data:
   SYN_AXON_HTTPS_PORT: "null"
-  SYN_AXON_LISTENER: "ssl://0.0.0.0:27492"
+  SYN_AXON_DMON_LISTEN: "ssl://0.0.0.0:27492?hostname=00.axon.synapse&ca=synapse"
   # AHA provisioning URL — generated from AHA after it is running:
   #   kubectl exec -n synapse aha-0 -- python -m synapse.tools.aha.provision.service 00.axon
   # Set the output URL in a Secret named 'axon-provision' with key 'SYN_AXON_AHA_PROVISION'

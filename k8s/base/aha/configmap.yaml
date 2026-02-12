@@ -6,9 +6,8 @@ metadata:
     app.kubernetes.io/name: aha
     app.kubernetes.io/component: service-discovery
 data:
-  SYN_AHA_LISTENER: "ssl://0.0.0.0:27492"
   SYN_AHA_HTTPS_PORT: "null"
   # The AHA network name — all services register under this network
-  SYN_AHA_NETWORK: "synapse"
+  SYN_AHA_AHA_NETWORK: "synapse"
   # DNS name AHA advertises to other services
   SYN_AHA_DNS_NAME: "aha.synapse.svc.cluster.local"

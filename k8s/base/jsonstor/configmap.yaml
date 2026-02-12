@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/component: json-storage
 data:
   SYN_JSONSTOR_HTTPS_PORT: "null"
-  SYN_JSONSTOR_LISTENER: "ssl://0.0.0.0:27492"
+  SYN_JSONSTOR_DMON_LISTEN: "ssl://0.0.0.0:27492?hostname=00.jsonstor.synapse&ca=synapse"
   # AHA provisioning URL — generated from AHA after it is running:
   #   kubectl exec -n synapse aha-0 -- python -m synapse.tools.aha.provision.service 00.jsonstor
   # Set the output URL in a Secret named 'jsonstor-provision' with key 'SYN_JSONSTOR_AHA_PROVISION'
