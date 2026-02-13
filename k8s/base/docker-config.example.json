@@ -1,0 +1,19 @@
+{
+  "auths": {
+    "https://index.docker.io/v1/": {
+      "username": "dockerhub-user",
+      "password": "dockerhub-pass",
+      "auth": "ZG9ja2VyaHViLXVzZXI6ZG9ja2VyaHViLXBhc3M="
+    },
+    "myregistry.azurecr.io": {
+      "username": "azure-user",
+      "password": "azure-pass",
+      "auth": "YXp1cmUtdXNlcjphenVyZS1wYXNz"
+    },
+    "gcr.io": {
+      "username": "_json_key",
+      "password": "{...json key...}",
+      "auth": "X2pzb25fa2V5Ont9"
+    }
+  }
+}
