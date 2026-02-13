@@ -1,48 +1,6 @@
 # Synapse K8s
 **Synapse Optic will not work unless you have a subscription**
 
- 
-Structure
-
-  k8s/base/
-  ├── kustomization.yaml          # Root — image tags, namespace, labels
-  ├── namespace.yaml              # synapse namespace
-  ├── aha/                        # Phase 1 — Service Discovery (no deps)
-  │   ├── configmap.yaml
-  │   ├── service.yaml
-  │   └── statefulset.yaml
-  ├── axon/                       # Phase 2 — Binary Storage (waits for AHA)
-  │   ├── configmap.yaml
-  │   ├── service.yaml
-  │   └── statefulset.yaml
-  ├── jsonstor/                   # Phase 2 — JSON Storage (waits for AHA)
-  │   ├── configmap.yaml
-  │   ├── service.yaml
-  │   └── statefulset.yaml
-  ├── cortex/                     # Phase 3 — Core Hypergraph (waits for AHA + Axon + JSONStor)
-  │   ├── configmap.yaml
-  │   ├── service.yaml
-  │   └── statefulset.yaml
-  └── optic/                      # Phase 4 — Web UI (waits for AHA + Cortex + Axon)
-      ├── configmap.yaml
-      ├── service.yaml
-      └── statefulset.yaml
-
-  Startup Order (enforced via init containers)
-  ┌───────┬──────────┬────────────────────────┐
-  │ Phase │ Service  │       Waits For        │
-  ├───────┼──────────┼────────────────────────┤
-  │ 1     │ AHA      │ Nothing — starts first │
-  ├───────┼──────────┼────────────────────────┤
-  │ 2     │ Axon     │ AHA                    │
-  ├───────┼──────────┼────────────────────────┤
-  │ 2     │ JSONStor │ AHA                    │
-  ├───────┼──────────┼────────────────────────┤
-  │ 3     │ Cortex   │ AHA, Axon, JSONStor    │
-  ├───────┼──────────┼────────────────────────┤
-  │ 4     │ Optic    │ AHA, Cortex, Axon      │
-  └───────┴──────────┴────────────────────────┘
-  Provisioning Workflow
 
   After deploying, you need to generate one-time provisioning URLs from AHA and store them as Secrets:
 
