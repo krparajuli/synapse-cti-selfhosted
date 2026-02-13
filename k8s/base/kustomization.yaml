@@ -3,6 +3,11 @@ kind: Kustomization
 
 namespace: synapse
 
+secretGenerator:
+  - name: image-registry
+    envs:
+      - secrets.env 
+
 resources:
   - namespace.yaml
   # Phase 1: Service discovery (no dependencies)
