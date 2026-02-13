@@ -1,4 +1,8 @@
- Structure
+# Synapse K8s
+**Synapse Optic will not work unless you have a subscription**
+
+ 
+Structure
 
   k8s/base/
   ├── kustomization.yaml          # Root — image tags, namespace, labels
@@ -65,14 +69,3 @@
   - Optic hostname: Set SYN_OPTIC_NETLOC in optic/configmap.yaml to your public domain
   - Resource limits: Adjust per-service in each StatefulSet
 
-
-# Discussion
-Each service has two K8s Services because they serve different purposes:
-
-  ClusterIP Service (e.g., aha) — provides a stable DNS name (aha.synapse.svc.cluster.local) with load balancing. This is what other services use to connect (e.g., the init containers' nc -z checks, and AHA URLs like aha://axon...).
-
-  Headless Service (e.g., aha-headless, clusterIP: None) — required by StatefulSets. It gives each pod a unique, stable DNS identity like
-  aha-0.aha-headless.synapse.svc.cluster.local. StatefulSets won't work without a headless service specified in serviceName.
-
-  That said, for single-replica StatefulSets like these, you could simplify by using only the headless service for both purposes — the pod DNS
-  name would still resolve.
