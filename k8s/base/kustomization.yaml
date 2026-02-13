@@ -4,9 +4,12 @@ kind: Kustomization
 namespace: synapse
 
 secretGenerator:
-  - name: image-registry
-    envs:
-      - secrets.env 
+  - name: image-registry-secrets
+    type: kubernetes.io/dockerconfigjson
+    options:
+      disableNameSuffixHash: true
+    files:
+      - .dockerconfigjson
 
 resources:
   - namespace.yaml

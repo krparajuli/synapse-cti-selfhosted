@@ -6,6 +6,7 @@ metadata:
     app.kubernetes.io/name: optic
     app.kubernetes.io/component: web-ui
 spec:
+
   serviceName: optic
   replicas: 1
   selector:
@@ -17,6 +18,8 @@ spec:
         app.kubernetes.io/name: optic
         app.kubernetes.io/component: web-ui
     spec:
+      imagePullSecrets:
+        - name: image-registry-secrets
       securityContext:
         runAsUser: 999
         runAsGroup: 999
