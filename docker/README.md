@@ -2,21 +2,7 @@
   ├── docker-compose.yml    # All 5 services with dependency chain
   └── .env                  # Provisioning URL placeholders
 
-  Startup order is enforced via depends_on with condition: service_healthy:
-  ┌───────┬──────────┬───────────────────────────────┐
-  │ Phase │ Service  │         Starts after          │
-  ├───────┼──────────┼───────────────────────────────┤
-  │ 1     │ AHA      │ Nothing                       │
-  ├───────┼──────────┼───────────────────────────────┤
-  │ 2     │ Axon     │ AHA healthy                   │
-  ├───────┼──────────┼───────────────────────────────┤
-  │ 2     │ JSONStor │ AHA healthy                   │
-  ├───────┼──────────┼───────────────────────────────┤
-  │ 3     │ Cortex   │ AHA + Axon + JSONStor healthy │
-  ├───────┼──────────┼───────────────────────────────┤
-  │ 4     │ Optic    │ AHA + Cortex + Axon healthy   │
-  └───────┴──────────┴───────────────────────────────┘
-  Provisioning workflow:
+Steps:
 
   # 1. Start AHA
   docker compose up -d aha
