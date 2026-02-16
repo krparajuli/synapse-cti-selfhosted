@@ -1,0 +1,59 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: aha-pdb
+  labels:
+    app.kubernetes.io/name: aha
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: aha
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: axon-pdb
+  labels:
+    app.kubernetes.io/name: axon
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: axon
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: jsonstor-pdb
+  labels:
+    app.kubernetes.io/name: jsonstor
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jsonstor
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cortex-pdb
+  labels:
+    app.kubernetes.io/name: cortex
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cortex
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: optic-pdb
+  labels:
+    app.kubernetes.io/name: optic
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: optic
