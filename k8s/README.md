@@ -11,12 +11,13 @@
   kubectl -n synapse wait --for=condition=ready pod/aha-0
 
   # 3. Generate provisioning URLs and create secrets
+  ```bash
   for svc in axon jsonstor cortex optic; do
     URL=$(kubectl -n synapse exec aha-0 -- python -m synapse.tools.aha.provision.service "00.${svc}")
     KEY="SYN_$(echo $svc | tr 'a-z' 'A-Z')_AHA_PROVISION"
     kubectl -n synapse create secret generic "${svc}-provision" --from-literal="${KEY}=${URL}"
   done
-
+```
   # 4. Restart the waiting pods to pick up the provisioning secrets
   kubectl -n synapse rollout restart statefulset axon jsonstor cortex optic
 
