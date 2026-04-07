@@ -8,7 +8,7 @@ services:
     user: "999"
     restart: unless-stopped
     volumes:
-      - ./data/aha:/vertex/storage
+      - aha-data:/vertex/storage
     environment:
       SYN_AHA_AHA_NETWORK: "synapse"
       SYN_AHA_HTTPS_PORT: "null"
@@ -33,7 +33,7 @@ services:
       aha:
         condition: service_healthy
     volumes:
-      - ./data/axon:/vertex/storage
+      - axon-data:/vertex/storage
     environment:
       SYN_AXON_HTTPS_PORT: "null"
       SYN_AXON_AHA_PROVISION: "${SYN_AXON_AHA_PROVISION:-}"
@@ -56,7 +56,7 @@ services:
       aha:
         condition: service_healthy
     volumes:
-      - ./data/jsonstor:/vertex/storage
+      - jsonstor-data:/vertex/storage
     environment:
       SYN_JSONSTOR_HTTPS_PORT: "null"
       SYN_JSONSTOR_AHA_PROVISION: "${SYN_JSONSTOR_AHA_PROVISION:-}"
@@ -83,7 +83,7 @@ services:
       jsonstor:
         condition: service_healthy
     volumes:
-      - ./data/cortex:/vertex/storage
+      - cortex-data:/vertex/storage
     environment:
       SYN_CORTEX_HTTPS_PORT: "null"
       SYN_CORTEX_AXON: "aha://axon..."
@@ -115,7 +115,7 @@ services:
   #     axon:
   #       condition: service_healthy
   #   volumes:
-  #     - ./data/optic:/vertex/storage
+  #     - optic-data:/vertex/storage
   #   environment:
   #     SYN_OPTIC_HTTPS_PORT: "4443"
   #     SYN_OPTIC_CORTEX: "aha://cortex..."
@@ -131,3 +131,10 @@ services:
   #     timeout: 5s
   #     retries: 15
   #     start_period: 30s
+
+volumes:
+  aha-data:
+  axon-data:
+  jsonstor-data:
+  cortex-data:
+  # optic-data:
