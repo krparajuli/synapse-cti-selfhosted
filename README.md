@@ -6,4 +6,4 @@ This is a configuration to self host Vertex Project Synapse using docker or kube
 
 **Remember Synapse Optic requires enterprise subscription**
 
-PS: You can also just request a demo instance from Vertex Projects.
+PS: You can also just request a demo instance from Vertex Projects. This might fit most learning use cases.
