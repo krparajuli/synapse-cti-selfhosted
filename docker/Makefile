@@ -1,6 +1,7 @@
-COMPOSE  = docker compose
-ENV_FILE = .env
-GEN_ENV  = gen-env.txt
+COMPOSE       = docker compose
+ENV_FILE      = .env
+GEN_ENV       = gen-env.txt
+MAIN_SERVICES = aha axon jsonstor cortex
 
 .PHONY: help init aha-up provision up down restart logs clean
 
@@ -19,10 +20,11 @@ help:
 	@echo "  up       Start all services"
 	@echo "  down     Stop all services"
 	@echo "  restart  Restart all services"
-	@echo "  logs     Tail logs for all services"
+	@echo "  logs     Tail logs for main services (excludes one-shot init containers)"
 	@echo "  clean    Stop services and delete named volumes (destructive)"
 
 # Start AHA only (first step of provisioning workflow)
+# aha-init runs first automatically to fix volume ownership (chown 999:999)
 aha-up:
 	$(COMPOSE) up -d aha
 
@@ -47,6 +49,7 @@ init: aha-up
 	@$(MAKE) provision
 
 # Start all services (requires $(ENV_FILE) to be populated)
+# *-init containers run first automatically per depends_on to fix volume ownership
 up:
 	$(COMPOSE) --env-file $(ENV_FILE) up -d
 
@@ -54,13 +57,13 @@ up:
 down:
 	$(COMPOSE) down
 
-# Restart running services
+# Restart main services only (init containers are one-shot and should not be restarted)
 restart:
-	$(COMPOSE) restart
+	$(COMPOSE) restart $(MAIN_SERVICES)
 
-# Tail logs for all services
+# Tail logs for main services (init containers exit immediately; their logs don't change)
 logs:
-	$(COMPOSE) logs -f
+	$(COMPOSE) logs -f $(MAIN_SERVICES)
 
 # Stop services and delete all named volumes (data loss — use with care)
 clean:
