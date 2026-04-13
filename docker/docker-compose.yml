@@ -3,10 +3,20 @@ services:
   # ---------------------------------------------------------------
   # Phase 1: AHA — Service Discovery (no dependencies, starts first)
   # ---------------------------------------------------------------
+  aha-init:
+    image: vertexproject/synapse-aha:v2.x.x
+    user: root
+    volumes:
+      - aha-data:/vertex/storage
+    entrypoint: ["chown", "-R", "999:999", "/vertex/storage"]
+
   aha:
     image: vertexproject/synapse-aha:v2.x.x
     user: "999"
     restart: unless-stopped
+    depends_on:
+      aha-init:
+        condition: service_completed_successfully
     volumes:
       - aha-data:/vertex/storage
     environment:
@@ -25,11 +35,20 @@ services:
   # ---------------------------------------------------------------
   # Phase 2: Axon — Binary Storage (depends on AHA)
   # ---------------------------------------------------------------
+  axon-init:
+    image: vertexproject/synapse-axon:v2.x.x
+    user: root
+    volumes:
+      - axon-data:/vertex/storage
+    entrypoint: ["chown", "-R", "999:999", "/vertex/storage"]
+
   axon:
     image: vertexproject/synapse-axon:v2.x.x
     user: "999"
     restart: unless-stopped
     depends_on:
+      axon-init:
+        condition: service_completed_successfully
       aha:
         condition: service_healthy
     volumes:
@@ -48,11 +67,20 @@ services:
   # ---------------------------------------------------------------
   # Phase 2: JSONStor — JSON Storage (depends on AHA)
   # ---------------------------------------------------------------
+  jsonstor-init:
+    image: vertexproject/synapse-jsonstor:v2.x.x
+    user: root
+    volumes:
+      - jsonstor-data:/vertex/storage
+    entrypoint: ["chown", "-R", "999:999", "/vertex/storage"]
+
   jsonstor:
     image: vertexproject/synapse-jsonstor:v2.x.x
     user: "999"
     restart: unless-stopped
     depends_on:
+      jsonstor-init:
+        condition: service_completed_successfully
       aha:
         condition: service_healthy
     volumes:
@@ -71,11 +99,20 @@ services:
   # ---------------------------------------------------------------
   # Phase 3: Cortex — Core Hypergraph (depends on AHA, Axon, JSONStor)
   # ---------------------------------------------------------------
+  cortex-init:
+    image: vertexproject/synapse-cortex:v2.x.x
+    user: root
+    volumes:
+      - cortex-data:/vertex/storage
+    entrypoint: ["chown", "-R", "999:999", "/vertex/storage"]
+
   cortex:
     image: vertexproject/synapse-cortex:v2.x.x
     user: "999"
     restart: unless-stopped
     depends_on:
+      cortex-init:
+        condition: service_completed_successfully
       aha:
         condition: service_healthy
       axon:
@@ -103,11 +140,20 @@ services:
   #   Image 'vertexproject/optic' is not publicly available on Docker Hub.
   #   Contact Vertex Project for access, then uncomment this service.
   # ---------------------------------------------------------------
+  # optic-init:
+  #   image: vertexproject/optic:v2.x.x
+  #   user: root
+  #   volumes:
+  #     - optic-data:/vertex/storage
+  #   entrypoint: ["chown", "-R", "999:999", "/vertex/storage"]
+  #
   # optic:
   #   image: vertexproject/optic:v2.x.x
   #   user: "999"
   #   restart: unless-stopped
   #   depends_on:
+  #     optic-init:
+  #       condition: service_completed_successfully
   #     aha:
   #       condition: service_healthy
   #     cortex:
