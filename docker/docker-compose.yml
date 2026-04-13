@@ -121,6 +121,8 @@ services:
         condition: service_healthy
     volumes:
       - cortex-data:/vertex/storage
+    ports:
+      - "4443:4443"
     environment:
       SYN_CORTEX_HTTPS_PORT: "null"
       SYN_CORTEX_AXON: "aha://axon..."
