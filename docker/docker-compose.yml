@@ -124,7 +124,7 @@ services:
     ports:
       - "4443:4443"
     environment:
-      SYN_CORTEX_HTTPS_PORT: "null"
+      SYN_CORTEX_HTTPS_PORT: "4443"
       SYN_CORTEX_AXON: "aha://axon..."
       SYN_CORTEX_JSONSTOR: "aha://jsonstor..."
       SYN_CORTEX_AHA_PROVISION: "${SYN_CORTEX_AHA_PROVISION:-}"
