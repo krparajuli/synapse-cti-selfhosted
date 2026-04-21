@@ -2,7 +2,7 @@
 # deploy-from-host.sh — Synapse CTI deployment script
 #
 # Run this DIRECTLY on the Docker host after logging in via SSH.
-# Place it in the same directory as docker-compose.yml, then:
+# Place it in the same directory as docker-compose-bridged.yml, then:
 #
 #   sudo ./deploy-from-host.sh
 #
@@ -66,8 +66,8 @@ die()  { echo -e "\033[1;31m[error ]\033[0m $*" >&2; exit 1; }
 # ─── Pre-flight checks ───────────────────────────────────────────────────────
 [[ "$(id -u)" -ne 0 ]] && die "Must be run as root: sudo ./deploy-from-host.sh"
 
-[[ -f "${SCRIPT_DIR}/docker-compose.yml" ]] \
-  || die "docker-compose.yml not found in ${SCRIPT_DIR}"
+[[ -f "${SCRIPT_DIR}/docker-compose-bridged.yml" ]] \
+  || die "docker-compose-bridged.yml not found in ${SCRIPT_DIR}"
 
 if docker compose version &>/dev/null 2>&1; then
   COMPOSE="docker compose"
@@ -141,7 +141,7 @@ wait_healthy() {
   log "Waiting for ${service} to become healthy (timeout: $((max_attempts * interval))s) ..."
   for i in $(seq 1 "$max_attempts"); do
     local cid
-    cid="$(${COMPOSE} -f "${SCRIPT_DIR}/docker-compose.yml" ps -q "${service}" 2>/dev/null || true)"
+    cid="$(${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" ps -q "${service}" 2>/dev/null || true)"
     if [[ -n "$cid" ]]; then
       local status
       status="$(docker inspect --format='{{.State.Health.Status}}' "${cid}" 2>/dev/null || echo 'unknown')"
@@ -155,7 +155,7 @@ wait_healthy() {
     fi
     sleep "$interval"
   done
-  die "${service} did not become healthy in time.\nCheck logs: ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose.yml logs ${service}"
+  die "${service} did not become healthy in time.\nCheck logs: ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose-bridged.yml logs ${service}"
 }
 
 # ─── Helper: extract one-time provisioning URL from AHA output ───────────────
@@ -165,11 +165,11 @@ extract_prov_url() {
 
 # ─── Step 6: Start AHA (Phase 1) ─────────────────────────────────────────────
 log "Phase 1 — Starting AHA (Certificate Authority + Service Discovery) ..."
-${COMPOSE} -f "${SCRIPT_DIR}/docker-compose.yml" up -d aha-init aha
+${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" up -d aha-init aha
 
 wait_healthy aha 36   # up to 3 minutes
 
-AHA_CTR="$(${COMPOSE} -f "${SCRIPT_DIR}/docker-compose.yml" ps -q aha)"
+AHA_CTR="$(${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" ps -q aha)"
 [[ -z "$AHA_CTR" ]] && die "Could not find AHA container ID"
 
 # ─── Step 7: Generate one-time provisioning URLs inside AHA ──────────────────
@@ -211,18 +211,18 @@ ok ".env updated with provisioning URLs"
 
 # ─── Step 9: Start Axon + JSONStor (Phase 2) ─────────────────────────────────
 log "Phase 2 — Starting Axon + JSONStor (storage services) ..."
-${COMPOSE} -f "${SCRIPT_DIR}/docker-compose.yml" up -d axon-init axon jsonstor-init jsonstor
+${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" up -d axon-init axon jsonstor-init jsonstor
 
 wait_healthy axon     36   # up to 3 minutes
 wait_healthy jsonstor 36   # up to 3 minutes
 
 # ─── Step 10: Start Cortex (Phase 3) ─────────────────────────────────────────
 log "Phase 3 — Starting Cortex (hypergraph database + Storm engine) ..."
-${COMPOSE} -f "${SCRIPT_DIR}/docker-compose.yml" up -d cortex-init cortex
+${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" up -d cortex-init cortex
 
 wait_healthy cortex 60   # up to 5 minutes
 
-CORTEX_CTR="$(${COMPOSE} -f "${SCRIPT_DIR}/docker-compose.yml" ps -q cortex)"
+CORTEX_CTR="$(${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" ps -q cortex)"
 [[ -z "$CORTEX_CTR" ]] && die "Could not find Cortex container ID"
 
 # ─── Step 11: Create admin user in Cortex ────────────────────────────────────
@@ -280,8 +280,8 @@ cat << SUMMARY
       "ssl://admin@${HOST_IP}:${CORTEX_DMON_PORT}?hostname=00.cortex.${AHA_NETWORK}&ca=${AHA_NETWORK}"
 
   Service management:
-    ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose.yml ps
-    ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose.yml logs -f cortex
-    ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose.yml restart cortex
+    ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose-bridged.yml ps
+    ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose-bridged.yml logs -f cortex
+    ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose-bridged.yml restart cortex
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SUMMARY
