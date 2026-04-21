@@ -1,0 +1,200 @@
+# Synapse CTI — Production Docker Compose
+# Domain: *.sheingroup.com
+#
+# Uses a named Docker bridge network (synapse) instead of network_mode: host.
+# This works on Linux, Docker Desktop for Mac/Windows, and allows multiple
+# Synapse stacks on the same host without port conflicts.
+#
+# SYN_AHA_DNS_NAME is set to "aha" — the Docker service name — so Docker's
+# internal DNS resolver (127.0.0.11) resolves it within the bridge network.
+# No /etc/hosts entry is needed on the host for AHA.
+#
+# Service startup order:
+#   Phase 1: AHA          (CA + service discovery — no dependencies)
+#   Phase 2: Axon         (binary storage — depends on AHA)
+#   Phase 2: JSONStor     (JSON storage  — depends on AHA)
+#   Phase 3: Cortex       (hypergraph DB — depends on AHA + Axon + JSONStor)
+#
+# Published ports (host → container):
+#   27272 → AHA provisioning   (needed by remote clients during aha.enroll)
+#   27492 → AHA RPC
+#   27495 → Cortex Telepath    (Storm CLI)
+#   4443  → Cortex HTTPS API
+#
+# Axon and JSONStor ports are NOT published — only Cortex talks to them,
+# and it does so via aha:// resolution within the bridge network.
+
+networks:
+  synapse:
+    driver: bridge
+
+services:
+
+  # ─────────────────────────────────────────────────────────────────
+  # Phase 1: AHA — Certificate Authority + Service Discovery
+  # ─────────────────────────────────────────────────────────────────
+
+  aha-init:
+    image: vertexproject/synapse-aha:${SYNAPSE_VERSION:-v2.x.x}
+    user: root
+    networks: [synapse]
+    volumes:
+      - /srv/syn/00.aha/storage:/vertex/storage
+    entrypoint: ["chown", "-R", "999:999", "/vertex/storage"]
+    restart: "no"
+
+  aha:
+    image: vertexproject/synapse-aha:${SYNAPSE_VERSION:-v2.x.x}
+    user: "999"
+    networks: [synapse]
+    restart: unless-stopped
+    depends_on:
+      aha-init:
+        condition: service_completed_successfully
+    volumes:
+      - /srv/syn/00.aha/storage:/vertex/storage
+    ports:
+      - "27272:27272"   # provisioning — remote clients need this for aha.enroll
+      - "27492:27492"   # AHA RPC
+    environment:
+      SYN_AHA_AHA_NETWORK: "${AHA_NETWORK:-synapse}"
+      SYN_AHA_HTTPS_PORT: "null"
+      # "aha" is the Docker service name — resolved by Docker's internal DNS
+      # within the bridge network. No /etc/hosts entry needed on the host.
+      SYN_AHA_DNS_NAME: "aha"
+      SYN_LOG_LEVEL: "INFO"
+      SYN_LOG_STRUCT: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import socket; s=socket.socket(); s.settimeout(5); s.connect((\"127.0.0.1\",27492)); s.close()'"]
+      interval: 10s
+      timeout: 8s
+      retries: 18
+      start_period: 30s
+
+  # ─────────────────────────────────────────────────────────────────
+  # Phase 2a: Axon — Binary Blob Storage
+  # Not published externally — only Cortex connects to it via aha://
+  # ─────────────────────────────────────────────────────────────────
+
+  axon-init:
+    image: vertexproject/synapse-axon:${SYNAPSE_VERSION:-v2.x.x}
+    user: root
+    networks: [synapse]
+    volumes:
+      - /srv/syn/00.axon/storage:/vertex/storage
+    entrypoint: ["chown", "-R", "999:999", "/vertex/storage"]
+    restart: "no"
+
+  axon:
+    image: vertexproject/synapse-axon:${SYNAPSE_VERSION:-v2.x.x}
+    user: "999"
+    networks: [synapse]
+    restart: unless-stopped
+    depends_on:
+      axon-init:
+        condition: service_completed_successfully
+      aha:
+        condition: service_healthy
+    volumes:
+      - /srv/syn/00.axon/storage:/vertex/storage
+    environment:
+      SYN_AXON_HTTPS_PORT: "null"
+      SYN_AXON_AHA_PROVISION: "${SYN_AXON_AHA_PROVISION}"
+      SYN_AXON_DMON_LISTEN: "ssl://0.0.0.0:27493?hostname=00.axon.${AHA_NETWORK:-synapse}&ca=${AHA_NETWORK:-synapse}"
+      SYN_LOG_LEVEL: "INFO"
+      SYN_LOG_STRUCT: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import socket; s=socket.socket(); s.settimeout(5); s.connect((\"127.0.0.1\",27493)); s.close()'"]
+      interval: 10s
+      timeout: 8s
+      retries: 18
+      start_period: 30s
+
+  # ─────────────────────────────────────────────────────────────────
+  # Phase 2b: JSONStor — JSON Object Storage
+  # Not published externally — only Cortex connects to it via aha://
+  # ─────────────────────────────────────────────────────────────────
+
+  jsonstor-init:
+    image: vertexproject/synapse-jsonstor:${SYNAPSE_VERSION:-v2.x.x}
+    user: root
+    networks: [synapse]
+    volumes:
+      - /srv/syn/00.jsonstor/storage:/vertex/storage
+    entrypoint: ["chown", "-R", "999:999", "/vertex/storage"]
+    restart: "no"
+
+  jsonstor:
+    image: vertexproject/synapse-jsonstor:${SYNAPSE_VERSION:-v2.x.x}
+    user: "999"
+    networks: [synapse]
+    restart: unless-stopped
+    depends_on:
+      jsonstor-init:
+        condition: service_completed_successfully
+      aha:
+        condition: service_healthy
+    volumes:
+      - /srv/syn/00.jsonstor/storage:/vertex/storage
+    environment:
+      SYN_JSONSTOR_HTTPS_PORT: "null"
+      SYN_JSONSTOR_AHA_PROVISION: "${SYN_JSONSTOR_AHA_PROVISION}"
+      SYN_JSONSTOR_DMON_LISTEN: "ssl://0.0.0.0:27494?hostname=00.jsonstor.${AHA_NETWORK:-synapse}&ca=${AHA_NETWORK:-synapse}"
+      SYN_LOG_LEVEL: "INFO"
+      SYN_LOG_STRUCT: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import socket; s=socket.socket(); s.settimeout(5); s.connect((\"127.0.0.1\",27494)); s.close()'"]
+      interval: 10s
+      timeout: 8s
+      retries: 18
+      start_period: 30s
+
+  # ─────────────────────────────────────────────────────────────────
+  # Phase 3: Cortex — Hypergraph Database + Storm Query Engine
+  # Publishes Telepath (:27495) and HTTPS API (:4443) externally
+  # ─────────────────────────────────────────────────────────────────
+
+  cortex-init:
+    image: vertexproject/synapse-cortex:${SYNAPSE_VERSION:-v2.x.x}
+    user: root
+    networks: [synapse]
+    volumes:
+      - /srv/syn/00.cortex/storage:/vertex/storage
+    entrypoint: ["chown", "-R", "999:999", "/vertex/storage"]
+    restart: "no"
+
+  cortex:
+    image: vertexproject/synapse-cortex:${SYNAPSE_VERSION:-v2.x.x}
+    user: "999"
+    networks: [synapse]
+    restart: unless-stopped
+    depends_on:
+      cortex-init:
+        condition: service_completed_successfully
+      aha:
+        condition: service_healthy
+      axon:
+        condition: service_healthy
+      jsonstor:
+        condition: service_healthy
+    volumes:
+      - /srv/syn/00.cortex/storage:/vertex/storage
+    ports:
+      - "27495:27495"   # Telepath — Storm CLI remote access
+      - "4443:4443"     # HTTPS API — browser / REST
+    environment:
+      SYN_CORTEX_HTTPS_PORT: "4443"
+      SYN_CORTEX_HTTPS_PARSE_PROXY_REMOTEIP: "true"
+      SYN_CORTEX_AHA_PROVISION: "${SYN_CORTEX_AHA_PROVISION}"
+      SYN_CORTEX_DMON_LISTEN: "ssl://0.0.0.0:27495?hostname=00.cortex.${AHA_NETWORK:-synapse}&ca=${AHA_NETWORK:-synapse}"
+      SYN_CORTEX_AXON: "aha://axon..."
+      SYN_CORTEX_JSONSTOR: "aha://jsonstor..."
+      SYN_CORTEX_STORM_LOG: "true"
+      SYN_LOG_LEVEL: "INFO"
+      SYN_LOG_STRUCT: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import socket; s=socket.socket(); s.settimeout(5); s.connect((\"127.0.0.1\",27495)); s.close()'"]
+      interval: 10s
+      timeout: 8s
+      retries: 24
+      start_period: 60s
