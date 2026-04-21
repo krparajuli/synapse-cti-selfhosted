@@ -55,7 +55,6 @@ services:
       - /srv/syn/00.aha/storage:/vertex/storage
     ports:
       - "27272:27272"   # provisioning — remote clients need this for aha.enroll
-      - "27492:27492"   # AHA RPC
     environment:
       SYN_AHA_AHA_NETWORK: "${AHA_NETWORK:-synapse}"
       SYN_AHA_HTTPS_PORT: "null"
@@ -180,7 +179,7 @@ services:
     volumes:
       - /srv/syn/00.cortex/storage:/vertex/storage
     ports:
-      - "27495:27495"   # Telepath — Storm CLI remote access
+      - "27492:27495"   # Telepath — Storm CLI remote access
       - "4443:4443"     # HTTPS API — browser / REST
     environment:
       SYN_CORTEX_HTTPS_PORT: "4443"
