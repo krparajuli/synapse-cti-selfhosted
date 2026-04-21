@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# storm-commands.sh — Storm CLI reference for Synapse CTI (sheingroup.com deployment)
+# storm-commands.sh — Storm CLI reference for Synapse CTI (example.com deployment)
 #
 # Source this file to get helper functions:
 #   source storm-commands.sh
@@ -15,7 +15,7 @@
 
 # ─── Configuration ────────────────────────────────────────────────────────────
 # Override these with environment variables before sourcing, or edit defaults:
-CORTEX_HOST="${CORTEX_HOST:-cortex.sheingroup.com}"
+CORTEX_HOST="${CORTEX_HOST:-cortex.example.com}"
 CORTEX_PORT="${CORTEX_PORT:-27495}"
 CORTEX_HTTPS_PORT="${CORTEX_HTTPS_PORT:-4443}"
 AHA_NETWORK="${AHA_NETWORK:-synapse}"
@@ -64,16 +64,16 @@ echo "Commands: syn_storm | syn_run '<query>' | syn_as_user <user> '<query>'"
 
 # Interactive REPL (after client-setup.sh enrollment):
 python3 -m synapse.tools.storm \
-  "ssl://admin@cortex.sheingroup.com:27495?hostname=00.cortex.synapse&ca=synapse"
+  "ssl://admin@cortex.example.com:27495?hostname=00.cortex.synapse&ca=synapse"
 
 # One-shot query:
 python3 -m synapse.tools.storm \
-  "ssl://admin@cortex.sheingroup.com:27495?hostname=00.cortex.synapse&ca=synapse" \
+  "ssl://admin@cortex.example.com:27495?hostname=00.cortex.synapse&ca=synapse" \
   <<< '$lib.version'
 
 # Cortex HTTPS REST API (browser or curl):
-#   https://cortex.sheingroup.com:4443
-#   curl -k -u admin:<password> https://cortex.sheingroup.com:4443/api/v1/auth/whoami
+#   https://cortex.example.com:4443
+#   curl -k -u admin:<password> https://cortex.example.com:4443/api/v1/auth/whoami
 
 
 ══════════════════════════════════════════════════════════════
@@ -123,7 +123,7 @@ auth.user.mod analyst01 --role readers
 #   docker exec <aha-container> python -m synapse.tools.aha.provision.user <username>
 
 # Client-side enrollment (run on client machine):
-#   python3 -m synapse.tools.aha.enroll "ssl://aha.sheingroup.com:27272/<guid>?certhash=<sha256>"
+#   python3 -m synapse.tools.aha.enroll "ssl://aha.example.com:27272/<guid>?certhash=<sha256>"
 
 
 ══════════════════════════════════════════════════════════════
@@ -259,7 +259,7 @@ for ($fqdn, $tag) in $rows {
 
 # Export all threat-tagged domains to JSON (via HTTPS API):
 #   curl -k -u admin:<password> \
-#     "https://cortex.sheingroup.com:4443/api/v1/storm" \
+#     "https://cortex.example.com:4443/api/v1/storm" \
 #     -X POST -H "Content-Type: application/json" \
 #     -d '{"query": "inet:fqdn +#threat", "opts": {"repr": true}}'
 

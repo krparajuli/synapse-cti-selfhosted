@@ -12,7 +12,7 @@
 #                     [--username admin]
 #
 # Or pass the URL as a positional argument:
-#   ./client-setup.sh "ssl://aha.sheingroup.com:27272/<guid>?certhash=<sha256>"
+#   ./client-setup.sh "ssl://aha.example.com:27272/<guid>?certhash=<sha256>"
 #
 # After enrollment:
 #   - AHA CA certificate is stored in ~/.syn/certs/cas/
@@ -27,7 +27,7 @@ CORTEX_HOST=""
 CORTEX_PORT="27495"
 AHA_NETWORK="synapse"
 USERNAME="admin"
-DOMAIN="sheingroup.com"
+DOMAIN="example.com"
 
 # ─── Argument parsing ────────────────────────────────────────────────────────
 # Allow first positional arg as enroll URL

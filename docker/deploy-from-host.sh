@@ -10,7 +10,7 @@
 #   --version      <v2.x.x>   Synapse image tag         (default: v2.239.0)
 #   --aha-network  <name>      AHA PKI network name      (default: synapse)
 #                              WARNING: immutable after first boot
-#   --domain       <domain>    External domain suffix    (default: sheingroup.com)
+#   --domain       <domain>    External domain suffix    (default: example.com)
 #   --host-ip      <ip>        Override auto-detected public IP
 #
 # What this script does:
@@ -35,7 +35,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ─── Defaults ────────────────────────────────────────────────────────────────
 SYNAPSE_VERSION="v2.239.0"
 AHA_NETWORK="synapse"
-DOMAIN="sheingroup.com"
+DOMAIN="example.com"
 HOST_IP=""
 
 AXON_DMON_PORT=27493

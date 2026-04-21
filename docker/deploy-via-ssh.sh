@@ -9,7 +9,7 @@
 #   5. Starts Axon + JSONStor, then Cortex (in correct dependency order)
 #   6. Creates the 'admin' user in Cortex with full admin rights
 #   7. Generates an AHA enrollment URL for the admin user
-#   8. Adds *.sheingroup.com DNS entries to /etc/hosts on THIS machine
+#   8. Adds *.example.com DNS entries to /etc/hosts on THIS machine
 #   9. Prints enrollment and Storm connection instructions
 #
 # Usage:
@@ -39,7 +39,7 @@ SSH_KEY=""
 SSH_PASS=""
 SYNAPSE_VERSION="v2.239.0"
 AHA_NETWORK="synapse"
-DOMAIN="sheingroup.com"
+DOMAIN="example.com"
 REMOTE_DIR="/opt/synapse"
 COMPOSE_FILE="$(dirname "$0")/docker-compose.yml"
 

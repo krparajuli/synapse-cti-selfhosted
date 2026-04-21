@@ -1,5 +1,5 @@
 # Synapse CTI — Production Docker Compose
-# Domain: *.sheingroup.com
+# Domain: *.example.com
 #
 # Uses a named Docker bridge network (synapse) instead of network_mode: host.
 # This works on Linux, Docker Desktop for Mac/Windows, and allows multiple

@@ -1,5 +1,5 @@
 # Synapse CTI — Production Docker Compose
-# Domain: *.sheingroup.com
+# Domain: *.example.com
 #
 # REQUIREMENTS:
 #   - Linux host only (network_mode: host is not supported on Docker Desktop for Mac/Windows)
@@ -47,7 +47,7 @@ services:
     environment:
       SYN_AHA_AHA_NETWORK: "${AHA_NETWORK:-synapse}"
       SYN_AHA_HTTPS_PORT: "null"
-      SYN_AHA_DNS_NAME: "${AHA_DNS_NAME:-aha.sheingroup.com}"
+      SYN_AHA_DNS_NAME: "${AHA_DNS_NAME:-aha.example.com}"
       SYN_LOG_LEVEL: "INFO"
       SYN_LOG_STRUCT: "true"
     healthcheck:
