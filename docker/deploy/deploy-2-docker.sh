@@ -31,6 +31,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Locate docker-compose-bridged.yml: same dir as script, or one level up
+if [[ -f "${SCRIPT_DIR}/docker-compose-bridged.yml" ]]; then
+  COMPOSE_FILE="${SCRIPT_DIR}/docker-compose-bridged.yml"
+elif [[ -f "${SCRIPT_DIR}/../docker-compose-bridged.yml" ]]; then
+  COMPOSE_FILE="$(cd "${SCRIPT_DIR}/.." && pwd)/docker-compose-bridged.yml"
+else
+  COMPOSE_FILE="${SCRIPT_DIR}/docker-compose-bridged.yml"  # will fail pre-flight with a clear message
+fi
+
 # ─── Defaults ────────────────────────────────────────────────────────────────
 SYNAPSE_VERSION="v2.239.0"
 AHA_NETWORK="synapse"
@@ -63,8 +72,8 @@ warn() { echo -e "\033[1;33m[ warn ]\033[0m $*"; }
 die()  { local msg="$*"; echo -e "\033[1;31m[error ]\033[0m ${msg}"; echo -e "\033[1;31m[error ]\033[0m ${msg}" >&2; exit 1; }
 
 # ─── Pre-flight checks ───────────────────────────────────────────────────────
-[[ -f "${SCRIPT_DIR}/docker-compose-bridged.yml" ]] \
-  || die "docker-compose-bridged.yml not found in ${SCRIPT_DIR}"
+[[ -f "${COMPOSE_FILE}" ]] \
+  || die "docker-compose-bridged.yml not found in ${SCRIPT_DIR} or $(dirname "${COMPOSE_FILE}")"
 
 if docker compose version &>/dev/null 2>&1; then
   COMPOSE="docker compose"
@@ -118,7 +127,7 @@ wait_healthy() {
   log "Waiting for ${service} to become healthy (timeout: $((max_attempts * interval))s) ..."
   for i in $(seq 1 "$max_attempts"); do
     local cid
-    cid="$(${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" ps -q "${service}" 2>/dev/null || true)"
+    cid="$(${COMPOSE} -f "${COMPOSE_FILE}" ps -q "${service}" 2>/dev/null || true)"
     if [[ -n "$cid" ]]; then
       local status
       status="$(docker inspect --format='{{.State.Health.Status}}' "${cid}" 2>/dev/null || echo 'unknown')"
@@ -132,7 +141,7 @@ wait_healthy() {
     fi
     sleep "$interval"
   done
-  die "${service} did not become healthy in time.\nCheck logs: ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose-bridged.yml logs ${service}"
+  die "${service} did not become healthy in time.\nCheck logs: ${COMPOSE} -f ${COMPOSE_FILE} logs ${service}"
 }
 
 # ─── Helper: extract one-time provisioning URL from a captured string ────────
@@ -142,11 +151,11 @@ extract_prov_url() {
 
 # ─── Step 3: Start AHA (Phase 1) ─────────────────────────────────────────────
 log "Phase 1 — Starting AHA (Certificate Authority + Service Discovery) ..."
-${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" up -d aha-init aha
+${COMPOSE} -f "${COMPOSE_FILE}" up -d aha-init aha
 
 wait_healthy aha 36   # up to 3 minutes
 
-AHA_CTR="$(${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" ps -q aha)"
+AHA_CTR="$(${COMPOSE} -f "${COMPOSE_FILE}" ps -q aha)"
 [[ -z "$AHA_CTR" ]] && die "Could not find AHA container ID"
 
 # ─── Step 4: Generate one-time provisioning URLs inside AHA ──────────────────
@@ -185,18 +194,18 @@ ok ".env updated with provisioning URLs"
 
 # ─── Step 6: Start Axon + JSONStor (Phase 2) ─────────────────────────────────
 log "Phase 2 — Starting Axon + JSONStor (storage services) ..."
-${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" up -d axon-init axon jsonstor-init jsonstor
+${COMPOSE} -f "${COMPOSE_FILE}" up -d axon-init axon jsonstor-init jsonstor
 
 wait_healthy axon     36   # up to 3 minutes
 wait_healthy jsonstor 36   # up to 3 minutes
 
 # ─── Step 7: Start Cortex (Phase 3) ──────────────────────────────────────────
 log "Phase 3 — Starting Cortex (hypergraph database + Storm engine) ..."
-${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" up -d cortex-init cortex
+${COMPOSE} -f "${COMPOSE_FILE}" up -d cortex-init cortex
 
 wait_healthy cortex 60   # up to 5 minutes
 
-CORTEX_CTR="$(${COMPOSE} -f "${SCRIPT_DIR}/docker-compose-bridged.yml" ps -q cortex)"
+CORTEX_CTR="$(${COMPOSE} -f "${COMPOSE_FILE}" ps -q cortex)"
 [[ -z "$CORTEX_CTR" ]] && die "Could not find Cortex container ID"
 
 # ─── Step 8: Create admin user in Cortex ─────────────────────────────────────
@@ -218,7 +227,7 @@ if [[ -z "$ADMIN_ENROLL_URL" ]]; then
   echo "────────────────────────────────────────"
   echo "${_enroll_raw}"
   echo "────────────────────────────────────────"
-  die "Failed to generate admin enrollment URL. Check AHA logs: ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose-bridged.yml logs aha"
+  die "Failed to generate admin enrollment URL. Check AHA logs: ${COMPOSE} -f ${COMPOSE_FILE} logs aha"
 fi
 
 # AHA uses SYN_AHA_DNS_NAME="aha" (Docker internal service name) when building
@@ -262,8 +271,8 @@ cat << SUMMARY
       "ssl://admin@${HOST_IP}:${CORTEX_DMON_PORT}?hostname=00.cortex.${AHA_NETWORK}&ca=${AHA_NETWORK}"
 
   Service management:
-    ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose-bridged.yml ps
-    ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose-bridged.yml logs -f cortex
-    ${COMPOSE} -f ${SCRIPT_DIR}/docker-compose-bridged.yml restart cortex
+    ${COMPOSE} -f ${COMPOSE_FILE} ps
+    ${COMPOSE} -f ${COMPOSE_FILE} logs -f cortex
+    ${COMPOSE} -f ${COMPOSE_FILE} restart cortex
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SUMMARY
